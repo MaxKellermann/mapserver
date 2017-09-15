@@ -267,7 +267,8 @@ else(WIN32)
   set(REGEX_SOURCES "")
 endif(WIN32)
 
-set(mapserver_SOURCES fontcache.c 
+set(mapserver_SOURCES fontcache.c
+mapalloc.c
 cgiutil.c mapgeos.c maporaclespatial.c mapsearch.c mapwms.c classobject.c
 mapgml.c mapoutput.c mapwmslayer.c layerobject.c mapgraticule.c mapows.c
 mapservutil.c mapxbase.c maphash.c mapowscommon.c mapshape.c mapxml.c mapbits.c
