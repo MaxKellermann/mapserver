@@ -2706,7 +2706,11 @@ void msPopulateTextSymbolForLabelAndString(textSymbolObj *ts, labelObj *l, char 
 #endif /* SHAPELIB_DISABLED */
 
   MS_DLL_EXPORT int msScaleInBounds(double scale, double minscale, double maxscale);
-  MS_DLL_EXPORT void *msSmallMalloc( size_t nSize );
+
+  static inline void *msSmallMalloc( size_t nSize ) {
+    return malloc(nSize);
+  }
+
   MS_DLL_EXPORT void * msSmallRealloc( void * pData, size_t nNewSize );
   MS_DLL_EXPORT void *msSmallCalloc( size_t nCount, size_t nSize );
   MS_DLL_EXPORT int msIntegerInArray(const int value, int *array, int numelements);

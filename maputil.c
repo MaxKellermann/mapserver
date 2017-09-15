@@ -2462,6 +2462,7 @@ int msExtentsOverlap(mapObj *map, layerObj *layer)
 /*                             msSmallMalloc()                          */
 /************************************************************************/
 
+#ifdef SHAPELIB_DISABLED
 /* Safe version of malloc(). This function is taken from gdal/cpl. */
 
 void *msSmallMalloc( size_t nSize )
@@ -2480,6 +2481,7 @@ void *msSmallMalloc( size_t nSize )
 
   return pReturn;
 }
+#endif /* SHAPELIB_DISABLED */
 
 /************************************************************************/
 /*                             msSmallRealloc()                         */
