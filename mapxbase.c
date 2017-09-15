@@ -46,7 +46,9 @@
 #  define safe_fseek fseek
 #endif
 
+#ifdef SHAPELIB_DISABLED
 static inline void IGUR_sizet(size_t ignored) { (void)ignored; }  /* Ignore GCC Unused Result */
+#endif /* SHAPELIB_DISABLED */
 
 /************************************************************************/
 /*                             SfRealloc()                              */
@@ -59,6 +61,8 @@ static void * SfRealloc( void * pMem, int nNewSize )
 {
   return( (void *) realloc(pMem,nNewSize) );
 }
+
+#ifdef SHAPELIB_DISABLED
 
 /************************************************************************/
 /*                           writeHeader()                              */
@@ -135,6 +139,8 @@ static void flushRecord( DBFHandle psDBF )
   }
 }
 
+#endif /* SHAPELIB_DISABLED */
+
 /************************************************************************/
 /*                              msDBFOpen()                             */
 /*                                                                      */
@@ -189,9 +195,13 @@ DBFHandle msDBFOpen( const char * pszFilename, const char * pszAccess )
     return( NULL );
   }
 
+#ifdef SHAPELIB_DISABLED
   psDBF->bNoHeader = MS_FALSE;
+#endif /* SHAPELIB_DISABLED */
   psDBF->nCurrentRecord = -1;
+#ifdef SHAPELIB_DISABLED
   psDBF->bCurrentRecordModified = MS_FALSE;
+#endif /* SHAPELIB_DISABLED */
 
   psDBF->pszStringField = NULL;
   psDBF->nStringFieldLen = 0;
@@ -269,6 +279,7 @@ DBFHandle msDBFOpen( const char * pszFilename, const char * pszAccess )
 
 void  msDBFClose(DBFHandle psDBF)
 {
+#ifdef SHAPELIB_DISABLED
   /* -------------------------------------------------------------------- */
   /*      Write out header if not already written.                        */
   /* -------------------------------------------------------------------- */
@@ -299,6 +310,7 @@ void  msDBFClose(DBFHandle psDBF)
     fseek( psDBF->fp, 0, 0 );
     fwrite( abyFileHeader, 32, 1, psDBF->fp );
   }
+#endif /* SHAPELIB_DISABLED */
 
   /* -------------------------------------------------------------------- */
   /*      Close, and free resources.                                      */
@@ -319,6 +331,8 @@ void  msDBFClose(DBFHandle psDBF)
 
   free( psDBF );
 }
+
+#ifdef SHAPELIB_DISABLED
 
 /************************************************************************/
 /*                             msDBFCreate()                            */
@@ -469,6 +483,8 @@ int msDBFAddField(DBFHandle psDBF, const char * pszFieldName, DBFFieldType eType
   return( psDBF->nFields-1 );
 }
 
+#endif /* SHAPELIB_DISABLED */
+
 /************************************************************************/
 /*                         DBFIsValueNULL()                             */
 /*                                                                      */
@@ -530,7 +546,9 @@ static const char *msDBFReadAttribute(DBFHandle psDBF, int hEntity, int iField )
   /*  Have we read the record?              */
   /* -------------------------------------------------------------------- */
   if( psDBF->nCurrentRecord != hEntity ) {
+#ifdef SHAPELIB_DISABLED
     flushRecord( psDBF );
+#endif /* SHAPELIB_DISABLED */
 
     nRecordOffset = psDBF->nRecordLength * hEntity + psDBF->nHeaderLength;
 
@@ -594,6 +612,8 @@ static const char *msDBFReadAttribute(DBFHandle psDBF, int hEntity, int iField )
   return( pReturnField );
 }
 
+#ifdef SHAPELIB_DISABLED
+
 /************************************************************************/
 /*                        msDBFReadIntAttribute()                       */
 /*                                                                      */
@@ -615,6 +635,8 @@ double  msDBFReadDoubleAttribute( DBFHandle psDBF, int iRecord, int iField )
   return(atof(msDBFReadAttribute( psDBF, iRecord, iField )));
 }
 
+#endif /* SHAPELIB_DISABLED */
+
 /************************************************************************/
 /*                        msDBFReadStringAttribute()                      */
 /*                                                                      */
@@ -624,6 +646,8 @@ const char *msDBFReadStringAttribute( DBFHandle psDBF, int iRecord, int iField )
 {
   return( msDBFReadAttribute( psDBF, iRecord, iField ) );
 }
+
+#ifdef SHAPELIB_DISABLED
 
 /************************************************************************/
 /*                          msDBFGetFieldCount()                        */
@@ -905,3 +929,5 @@ char **msDBFGetValueList(DBFHandle dbffile, int record, int *itemindexes, int nu
 
   return(values);
 }
+
+#endif /* SHAPELIB_DISABLED */

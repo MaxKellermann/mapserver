@@ -30,9 +30,14 @@
 #ifndef MAPSHAPE_H
 #define MAPSHAPE_H
 
+#ifdef SHAPELIB_DISABLED
 #include <stdio.h>
+#endif /* SHAPELIB_DISABLED */
+
 #include "mapprimitive.h"
+#ifdef SHAPELIB_DISABLED
 #include "mapproject.h"
+#endif /* SHAPELIB_DISABLED */
 
 #ifdef __cplusplus
 extern "C" {
@@ -96,7 +101,9 @@ extern "C" {
     double  adBoundsMin[4];
     double  adBoundsMax[4];
 
+#ifdef SHAPELIB_DISABLED
     int   bUpdated;
+#endif /* SHAPELIB_DISABLED */
 
     int   nBufSize; /* these used static vars in shape readers, moved to be thread-safe */
     uchar   *pabyRec;
@@ -128,11 +135,15 @@ extern "C" {
     char  *pszHeader;
 
     int   nCurrentRecord;
+#ifdef SHAPELIB_DISABLED
     int   bCurrentRecordModified;
+#endif /* SHAPELIB_DISABLED */
     char  *pszCurrentRecord;
 
+#ifdef SHAPELIB_DISABLED
     int   bNoHeader;
     int   bUpdated;
+#endif /* SHAPELIB_DISABLED */
 
     char  *pszStringField;
     int   nStringFieldLen;
@@ -179,7 +190,9 @@ extern "C" {
     shapefileObj *shpfile;
     shapefileObj *tileshpfile;
     int tilelayerindex;
+#ifdef SHAPELIB_DISABLED
     projectionObj sTileProj;
+#endif /* SHAPELIB_DISABLED */
     rectObj searchrect;
   } msTiledSHPLayerInfo;
 
