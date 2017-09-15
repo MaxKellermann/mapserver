@@ -124,25 +124,6 @@ int msEvalRegex(const char *e, const char *s)
   return(MS_TRUE);
 }
 
-#ifdef USE_MSFREE
-void msFree(void *p)
-{
-  if(p) free(p);
-}
-#endif
-
-/*
-** Free memory allocated for a character array
-*/
-void msFreeCharArray(char **array, int num_items)
-{
-  int i;
-  if(!array) return;
-  for(i=0; i<num_items; i++)
-    msFree(array[i]);
-  msFree(array);
-}
-
 /*
 ** Checks symbol from lexer against variable length list of
 ** legal symbols.
