@@ -42,10 +42,15 @@
 #include <stdbool.h>
 #include <math.h>
 #include "mapserver.h"
+#ifdef SHAPELIB_DISABLED
 #include "mapows.h"
+#endif
+#include "maptree.h"
 
+#ifdef SHAPELIB_DISABLED
 #include <cpl_conv.h>
 #include <ogr_srs_api.h>
+#endif /* SHAPELIB_DISABLED */
 
 /* Only use this macro on 32-bit integers! */
 #define SWAP_FOUR_BYTES(data) \
@@ -87,6 +92,8 @@ static void * SfRealloc( void * pMem, int nNewSize )
 {
   return realloc(pMem, nNewSize);
 }
+
+#ifdef SHAPELIB_DISABLED
 
 /************************************************************************/
 /*                          writeHeader()                               */
@@ -191,6 +198,8 @@ static void writeHeader( SHPHandle psSHP )
   free( panSHX );
 }
 
+#endif /* SHAPELIB_DISABLED */
+
 /************************************************************************/
 /*                              msSHPOpen()                             */
 /*                                                                      */
@@ -206,6 +215,8 @@ SHPHandle msSHPOpen( const char * pszLayer, const char * pszAccess )
   int i;
   double dValue;
 
+  (void)pszAccess;
+#ifdef SHAPELIB_DISABLED
   /* -------------------------------------------------------------------- */
   /*      Ensure the access string is one of the legal ones.  We          */
   /*      ensure the result string indicates binary to avoid common       */
@@ -216,7 +227,6 @@ SHPHandle msSHPOpen( const char * pszLayer, const char * pszAccess )
   else
     pszAccess = "rb";
 
-#ifdef SHAPELIB_DISABLED
   /* -------------------------------------------------------------------- */
   /*  Establish the byte order on this machine.         */
   /* -------------------------------------------------------------------- */
@@ -232,7 +242,9 @@ SHPHandle msSHPOpen( const char * pszLayer, const char * pszAccess )
   /* -------------------------------------------------------------------- */
   psSHP = (SHPHandle) msSmallMalloc(sizeof(SHPInfo));
 
+#ifdef SHAPELIB_DISABLED
   psSHP->bUpdated = MS_FALSE;
+#endif /* SHAPELIB_DISABLED */
 
   psSHP->pabyRec = NULL;
   psSHP->panParts = NULL;
@@ -414,11 +426,13 @@ SHPHandle msSHPOpen( const char * pszLayer, const char * pszAccess )
 /************************************************************************/
 void msSHPClose(SHPHandle psSHP )
 {
+#ifdef SHAPELIB_DISABLED
   /* -------------------------------------------------------------------- */
   /*  Update the header if we have modified anything.           */
   /* -------------------------------------------------------------------- */
   if( psSHP->bUpdated )
     writeHeader( psSHP );
+#endif /* SHAPELIB_DISABLED */
 
   /* -------------------------------------------------------------------- */
   /*      Free all resources, and close files.                            */
@@ -450,6 +464,8 @@ void msSHPGetInfo(SHPHandle psSHP, int * pnEntities, int * pnShapeType )
   if( pnShapeType )
     *pnShapeType = psSHP->nShapeType;
 }
+
+#ifdef SHAPELIB_DISABLED
 
 /************************************************************************/
 /*                             msSHPCreate()                            */
@@ -1024,6 +1040,8 @@ int msSHPWriteShape(SHPHandle psSHP, shapeObj *shape )
   return( psSHP->nRecords - 1 );
 }
 
+#endif /* SHAPELIB_DISABLED */
+
 /*
  ** msSHPReadAllocateBuffer() - Ensure our record buffer is large enough.
  */
@@ -1052,6 +1070,8 @@ static int msSHPReadAllocateBuffer( SHPHandle psSHP, int hEntity, const char* ps
   }
   return MS_SUCCESS;
 }
+
+#ifdef SHAPELIB_DISABLED
 
 /*
 ** msSHPReadPoint() - Reads a single point from a POINT shape file.
@@ -1114,6 +1134,8 @@ int msSHPReadPoint( SHPHandle psSHP, int hEntity, pointObj *point )
 
   return(MS_SUCCESS);
 }
+
+#endif /* SHAPELIB_DISABLED */
 
 /*
 ** msSHXLoadPage()
@@ -1769,6 +1791,8 @@ int msShapefileOpen(shapefileObj *shpfile, const char *mode, const char *filenam
   return(0); /* all o.k. */
 }
 
+#ifdef SHAPELIB_DISABLED
+
 /* Creates a new shapefile */
 int msShapefileCreate(shapefileObj *shpfile, char *filename, int type)
 {
@@ -1801,6 +1825,8 @@ int msShapefileCreate(shapefileObj *shpfile, char *filename, int type)
   shpfile->hDBF = NULL; /* XBase file is NOT created here... */
   return(0);
 }
+
+#endif /* SHAPELIB_DISABLED */
 
 void msShapefileClose(shapefileObj *shpfile)
 {
@@ -1877,6 +1903,8 @@ int msShapefileWhichShapes(shapefileObj *shpfile, rectObj rect, int debug)
 
   return(MS_SUCCESS); /* success */
 }
+
+#ifdef SHAPELIB_DISABLED
 
 /* Return the absolute path to the given layer's tileindex file's directory */
 void msTileIndexAbsoluteDir(char *tiFileAbsDir, layerObj *layer)
@@ -2897,3 +2925,5 @@ int msSHPLayerInitializeVirtualTable(layerObj *layer)
 
   return MS_SUCCESS;
 }
+
+#endif /* SHAPELIB_DISABLED */

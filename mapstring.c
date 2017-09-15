@@ -32,13 +32,18 @@
  ****************************************************************************/
 
 #include "mapserver.h"
+
+#ifdef SHAPELIB_DISABLED
 #include "mapthread.h"
 
 #include "cpl_vsi.h"
+#endif /* SHAPELIB_DISABLED */
 
 #include <stdio.h>
 #include <ctype.h>
 #include <string.h>
+
+#ifdef SHAPELIB_DISABLED
 #include <errno.h>
 
 /*
@@ -60,6 +65,7 @@
 #endif
 
 #include "mapentities.h"
+#endif /* SHAPELIB_DISABLED */
 
 #ifndef HAVE_STRRSTR
 /*
@@ -345,6 +351,8 @@ int strcasecmp(const char *s1, const char *s2)
   return(0);
 }
 #endif
+
+#ifdef SHAPELIB_DISABLED
 
 char *msLongToString(long value)
 {
@@ -2099,6 +2107,8 @@ int msStringIsInteger(const char *string)
   return MS_SUCCESS;
 }
 
+#endif /* SHAPELIB_DISABLED */
+
 /************************************************************************/
 /*                             msStrdup()                               */
 /************************************************************************/
@@ -2127,6 +2137,7 @@ char *msStrdup(const char * pszString)
     return pszReturn;
 }
 
+#ifdef SHAPELIB_DISABLED
 
 /************************************************************************/
 /*                             msStringEscape()                         */
@@ -2313,3 +2324,5 @@ int msStringBufferAppend(msStringBuffer* sb, const char* pszAppendedString)
     sb->length += nAppendLen;
     return MS_SUCCESS;
 }
+
+#endif /* SHAPELIB_DISABLED */

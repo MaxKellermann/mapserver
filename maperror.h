@@ -30,7 +30,9 @@
 #ifndef MAPERROR_H
 #define MAPERROR_H
 
+#ifdef SHAPELIB_DISABLED
 #include "mapthread.h"
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -90,11 +92,13 @@ extern "C" {
 
 #define MS_ERROR_LANGUAGE "en-US"
 
-#if defined(_WIN32) && !defined(__CYGWIN__)
+#ifdef SHAPELIB_DISABLED
 #  define MS_DLL_EXPORT     __declspec(dllexport)
 #else
 #define  MS_DLL_EXPORT
-#endif
+#endif /* SHAPELIB_DISABLED */
+
+#ifdef SHAPELIB_DISABLED
 
 #ifndef MS_PRINT_FUNC_FORMAT
 #if defined(__GNUC__) && __GNUC__ >= 3 && !defined(DOXYGEN_SKIP)
@@ -179,6 +183,22 @@ extern "C" {
   MS_DLL_EXPORT void msDebugCleanup( void );
 
 #endif /* SWIG */
+
+#endif /* SHAPELIB_DISABLED */
+
+static inline void
+msSetError(int code, const char *message, const char *routine, ...)
+{
+  (void)code;
+  (void)message;
+  (void)routine;
+}
+
+static inline void
+msDebug(const char *fmt, ...)
+{
+  (void)fmt;
+}
 
 #ifdef __cplusplus
 }

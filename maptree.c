@@ -52,7 +52,9 @@ static const bool bBigEndian = BYTE_ORDER == BIG_ENDIAN;
 /* -------------------------------------------------------------------- */
 #define SPLITRATIO  0.55
 
+#ifdef SHAPELIB_DISABLED
 static int treeAddShapeId(treeObj *tree, int id, rectObj rect);
+#endif /* SHAPELIB_DISABLED */
 
 static void SwapWord( int length, void * wordP )
 {
@@ -65,6 +67,8 @@ static void SwapWord( int length, void * wordP )
     ((uchar *) wordP)[length-i-1] = temp;
   }
 }
+
+#ifdef SHAPELIB_DISABLED
 
 static void * SfRealloc( void * pMem, int nNewSize )
 
@@ -91,6 +95,7 @@ static treeNodeObj *treeNodeCreate(rectObj rect)
   return node;
 }
 
+#endif /* SHAPELIB_DISABLED */
 
 SHPTreeHandle msSHPDiskTreeOpen(const char * pszTree, int debug)
 {
@@ -213,6 +218,7 @@ void msSHPDiskTreeClose(SHPTreeHandle disktree)
   free( disktree );
 }
 
+#ifdef SHAPELIB_DISABLED
 
 treeObj *msCreateTree(shapefileObj *shapefile, int maxdepth)
 {
@@ -479,6 +485,8 @@ void msTreeTrim(treeObj *tree)
   treeNodeTrim(tree->root);
 }
 
+#endif /* SHAPELIB_DISABLED */
+
 static void searchDiskTreeNode(SHPTreeHandle disktree, rectObj aoi, ms_bitarray status)
 {
   int i;
@@ -571,6 +579,8 @@ ms_bitarray msSearchDiskTree(const char *filename, rectObj aoi, int debug, int n
   msSHPDiskTreeClose( disktree );
   return(status);
 }
+
+#ifdef SHAPELIB_DISABLED
 
 treeNodeObj *readTreeNode( SHPTreeHandle disktree )
 {
@@ -822,6 +832,8 @@ int msWriteTree(treeObj *tree, char *filename, int B_order)
 
   return(MS_TRUE);
 }
+
+#endif /* SHAPELIB_DISABLED */
 
 /* Function to filter search results further against feature bboxes */
 void msFilterTreeSearch(shapefileObj *shp, ms_bitarray status, rectObj search_rect)

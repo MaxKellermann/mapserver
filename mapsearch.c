@@ -86,6 +86,8 @@ int msRectContained(const rectObj *a, const rectObj *b)
   return(MS_FALSE);
 }
 
+#ifdef SHAPELIB_DISABLED
+
 /*
 ** Merges rect b into rect a. Rect a changes, b does not.
 */
@@ -97,6 +99,8 @@ void msMergeRect(rectObj *a, rectObj *b)
   a->maxy = MS_MAX(a->maxy, b->maxy);
 }
 
+#endif /* SHAPELIB_DISABLED */
+
 int msPointInRect(const pointObj *p, const rectObj *rect)
 {
   if(p->x < rect->minx) return(MS_FALSE);
@@ -105,6 +109,8 @@ int msPointInRect(const pointObj *p, const rectObj *rect)
   if(p->y > rect->maxy) return(MS_FALSE);
   return(MS_TRUE);
 }
+
+#ifdef SHAPELIB_DISABLED
 
 int msPolygonDirection(lineObj *c)
 {
@@ -667,3 +673,5 @@ double msDistanceShapeToShape(shapeObj *shape1, shapeObj *shape2)
 
   return(minDist);
 }
+
+#endif /* SHAPELIB_DISABLED */

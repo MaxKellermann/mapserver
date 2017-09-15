@@ -42,6 +42,8 @@
 #define _GNU_SOURCE /* Required for <string.h> strcasestr() defn */
 #endif
 
+#ifdef SHAPELIB_DISABLED
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -64,6 +66,8 @@
 #else
 #define  MS_DLL_EXPORT
 #endif
+
+#endif /* SHAPELIB_DISABLED */
 
 #if defined(__GNUC__)
 #define WARN_UNUSED __attribute__((warn_unused_result))
@@ -102,6 +106,8 @@ typedef int32_t         ms_int32;
 typedef uint32_t        ms_uint32;
 #endif
 
+#ifdef SHAPELIB_DISABLED
+
 #if defined(_WIN32) && !defined(__CYGWIN__)
 /* Need to use _vsnprintf() with VS2003 */
 #define vsnprintf _vsnprintf
@@ -119,6 +125,7 @@ typedef struct glyph_element glyph_element;
 typedef struct face_element face_element;
 #endif
 
+#endif /* SHAPELIB_DISABLED */
 
 /* ms_bitarray is used by the bit mask in mapbit.c */
 typedef ms_uint32 *     ms_bitarray;
@@ -127,6 +134,9 @@ typedef const ms_uint32 *ms_const_bitarray;
 #include "maperror.h"
 #include "mapprimitive.h"
 #include "mapshape.h"
+
+#ifdef SHAPELIB_DISABLED
+
 #include "mapsymbol.h"
 #include "maptree.h" /* quadtree spatial index */
 #include "maphash.h"
@@ -172,6 +182,8 @@ typedef const ms_uint32 *ms_const_bitarray;
 #define snprintf _snprintf
 #endif
 #endif
+
+#endif /* SHAPELIB_DISABLED */
 
 #ifdef __cplusplus
 extern "C" {
@@ -546,6 +558,7 @@ extern "C" {
     MS_TRANSFORM_SIMPLIFY /* keep full resolution */
   };
 
+#ifdef SHAPELIB_DISABLED
   typedef enum {
         MS_COMPOP_CLEAR,
         MS_COMPOP_SRC,
@@ -2018,10 +2031,13 @@ void msPopulateTextSymbolForLabelAndString(textSymbolObj *ts, labelObj *l, char 
   MS_DLL_EXPORT void msCleanup(void);
   MS_DLL_EXPORT mapObj *msLoadMapFromString(char *buffer, char *new_mappath);
 
+#endif /* SHAPELIB_DISABLED */
+
   /* Function prototypes, not wrapable */
 
 #ifndef SWIG
 
+#ifdef SHAPELIB_DISABLED
   /*
   ** helper functions not part of the general API but needed in
   ** a few other places (like mapscript)... found in mapfile.c
@@ -2134,7 +2150,9 @@ void msPopulateTextSymbolForLabelAndString(textSymbolObj *ts, labelObj *l, char 
   MS_DLL_EXPORT mapObj  *msLoadMap(const char *filename, const char *new_mappath);
   MS_DLL_EXPORT int msTransformXmlMapfile(const char *stylesheet, const char *xmlMapfile, FILE *tmpfile);
   MS_DLL_EXPORT int msSaveMap(mapObj *map, char *filename);
+#endif /* SHAPELIB_DISABLED */
   MS_DLL_EXPORT void msFreeCharArray(char **array, int num_items);
+#ifdef SHAPELIB_DISABLED
   MS_DLL_EXPORT int msUpdateScalebarFromString(scalebarObj *scalebar, char *string, int url_string);
   MS_DLL_EXPORT int msUpdateQueryMapFromString(queryMapObj *querymap, char *string, int url_string);
   MS_DLL_EXPORT int msUpdateLabelFromString(labelObj *label, char *string, int url_string);
@@ -2158,11 +2176,13 @@ void msPopulateTextSymbolForLabelAndString(textSymbolObj *ts, labelObj *l, char 
   MS_DLL_EXPORT char *msWriteLegendToString(legendObj *legend);
   MS_DLL_EXPORT char *msWriteClusterToString(clusterObj *cluster);
   MS_DLL_EXPORT int msEvalRegex(const char *e, const char *s);
+#endif /* SHAPELIB_DISABLED */
 #ifdef USE_MSFREE
   MS_DLL_EXPORT void msFree(void *p);
 #else
 #define msFree free
 #endif
+#ifdef SHAPELIB_DISABLED
   MS_DLL_EXPORT char **msTokenizeMap(char *filename, int *numtokens);
   MS_DLL_EXPORT int msInitLabelCache(labelCacheObj *cache);
   MS_DLL_EXPORT int msFreeLabelCache(labelCacheObj *cache);
@@ -2181,12 +2201,14 @@ void msPopulateTextSymbolForLabelAndString(textSymbolObj *ts, labelObj *l, char 
   MS_DLL_EXPORT double Pix2LayerGeoref(mapObj *map, layerObj *layer, int value);
   MS_DLL_EXPORT double msInchesPerUnit(int units, double center_lat);
   MS_DLL_EXPORT int msEmbedScalebar(mapObj *map, imageObj *img);
+#endif /* SHAPELIB_DISABLED */
 
   MS_DLL_EXPORT int msPointInRect(const pointObj *p, const rectObj *rect); /* in mapsearch.c */
   MS_DLL_EXPORT int msRectOverlap(const rectObj *a, const rectObj *b);
   MS_DLL_EXPORT int msRectContained(const rectObj *a, const rectObj *b);
   MS_DLL_EXPORT int msRectIntersect(rectObj *a, const rectObj *b);
 
+#ifdef SHAPELIB_DISABLED
   MS_DLL_EXPORT void msRectToFormattedString(rectObj *rect, char *format,
       char *buffer, int buffer_length);
   MS_DLL_EXPORT void msPointToFormattedString(pointObj *point, const char*format,
@@ -2279,6 +2301,7 @@ void msPopulateTextSymbolForLabelAndString(textSymbolObj *ts, labelObj *l, char 
   MS_DLL_EXPORT int msUTF8ToUniChar(const char *str, unsigned int *chPtr); /* maptclutf.c */
   MS_DLL_EXPORT char* msStringEscape( const char * pszString );
   MS_DLL_EXPORT int msStringInArray( const char * pszString, char **array, int numelements);
+#endif /* SHAPELIB_DISABLED */
 
   typedef struct msStringBuffer msStringBuffer;
   MS_DLL_EXPORT msStringBuffer* msStringBufferAlloc(void);
@@ -2313,6 +2336,7 @@ void msPopulateTextSymbolForLabelAndString(textSymbolObj *ts, labelObj *l, char 
 
   MS_DLL_EXPORT char *msStrdup( const char * pszString );
 
+#ifdef SHAPELIB_DISABLED
 #include "hittest.h"
 
   /* in mapsymbol.c */
@@ -2363,13 +2387,19 @@ void msPopulateTextSymbolForLabelAndString(textSymbolObj *ts, labelObj *l, char 
   MS_DLL_EXPORT int msTestLabelCacheCollisions(mapObj *map, labelCacheMemberObj *cachePtr, label_bounds *lb, int current_priority, int current_label);
   MS_DLL_EXPORT int msTestLabelCacheLeaderCollision(mapObj *map, pointObj *lp1, pointObj *lp2);
   MS_DLL_EXPORT labelCacheMemberObj *msGetLabelCacheMember(labelCacheObj *labelcache, int i);
+#endif /* SHAPELIB_DISABLED */
 
   MS_DLL_EXPORT void msFreeShape(shapeObj *shape); /* in mapprimitive.c */
+#ifdef SHAPELIB_DISABLED
   int msGetShapeRAMSize(shapeObj* shape); /* in mapprimitive.c */
   MS_DLL_EXPORT void msFreeLabelPathObj(labelPathObj *path);
   MS_DLL_EXPORT shapeObj *msShapeFromWKT(const char *string);
   MS_DLL_EXPORT char *msShapeToWKT(shapeObj *shape);
+#endif /* SHAPELIB_DISABLED */
+
   MS_DLL_EXPORT void msInitShape(shapeObj *shape);
+
+#ifdef SHAPELIB_DISABLED
   MS_DLL_EXPORT void msShapeDeleteLine( shapeObj *shape, int line );
   MS_DLL_EXPORT int msCopyShape(shapeObj *from, shapeObj *to);
   MS_DLL_EXPORT int msIsOuterRing(shapeObj *shape, int r);
@@ -2433,6 +2463,7 @@ void msPopulateTextSymbolForLabelAndString(textSymbolObj *ts, labelObj *l, char 
 
   MS_DLL_EXPORT int msDrawRasterLayer(mapObj *map, layerObj *layer, imageObj *image); /* in mapraster.c */
   MS_DLL_EXPORT imageObj *msDrawReferenceMap(mapObj *map);
+#endif /* SHAPELIB_DISABLED */
 
   /* mapbits.c - bit array handling functions and macros */
 
@@ -2450,6 +2481,7 @@ void msPopulateTextSymbolForLabelAndString(textSymbolObj *ts, labelObj *l, char 
   MS_DLL_EXPORT void msFlipBit(ms_bitarray array, int index);
   MS_DLL_EXPORT int msGetNextBit(ms_const_bitarray array, int index, int size);
 
+#ifdef SHAPELIB_DISABLED
   /* maplayer.c - layerObj  api */
 
   MS_DLL_EXPORT int msLayerInitItemInfo(layerObj *layer);
@@ -2671,6 +2703,7 @@ void msPopulateTextSymbolForLabelAndString(textSymbolObj *ts, labelObj *l, char 
   /* ==================================================================== */
   /*      Prototypes for functions in maputil.c                           */
   /* ==================================================================== */
+#endif /* SHAPELIB_DISABLED */
 
   MS_DLL_EXPORT int msScaleInBounds(double scale, double minscale, double maxscale);
   MS_DLL_EXPORT void *msSmallMalloc( size_t nSize );
@@ -2678,6 +2711,7 @@ void msPopulateTextSymbolForLabelAndString(textSymbolObj *ts, labelObj *l, char 
   MS_DLL_EXPORT void *msSmallCalloc( size_t nCount, size_t nSize );
   MS_DLL_EXPORT int msIntegerInArray(const int value, int *array, int numelements);
 
+#ifdef SHAPELIB_DISABLED
   MS_DLL_EXPORT int msExtentsOverlap(mapObj *map, layerObj *layer);
   MS_DLL_EXPORT char *msBuildOnlineResource(mapObj *map, cgiRequestObj *req);
 
@@ -2987,12 +3021,14 @@ void msPopulateTextSymbolForLabelAndString(textSymbolObj *ts, labelObj *l, char 
   MS_DLL_EXPORT shapeObj *msV8TransformShape(shapeObj *shape,
                                              const char* filename);
 #endif
+#endif /* SHAPELIB_DISABLED */
   /* ==================================================================== */
   /*      end of prototypes for functions in mapv8.cpp                    */
   /* ==================================================================== */
 
 #endif
 
+#ifdef SHAPELIB_DISABLED
 
 #ifndef SWIG
   /*
@@ -3193,6 +3229,8 @@ void msPopulateTextSymbolForLabelAndString(textSymbolObj *ts, labelObj *l, char 
     int (*cleanup)(void *renderer_data);
   } ;
   MS_DLL_EXPORT int msRenderRasterizedSVGSymbol(imageObj* img, double x, double y, symbolObj* symbol, symbolStyleObj* style);
+
+#endif /* SHAPELIB_DISABLED */
 
 #define MS_IMAGE_RENDERER(im) ((im)->format->vtable)
 #define MS_RENDERER_CACHE(renderer) ((renderer)->renderer_data)

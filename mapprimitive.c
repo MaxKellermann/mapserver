@@ -29,9 +29,13 @@
 #include "mapserver.h"
 #include "mapprimitive.h"
 #include <assert.h>
+
+#ifdef SHAPELIB_DISABLED
 #include <locale.h>
 #include "fontcache.h"
+#endif /* SHAPELIB_DISABLED */
 
+#ifdef SHAPELIB_DISABLED
 
 typedef enum {CLIP_LEFT, CLIP_MIDDLE, CLIP_RIGHT} CLIP_STATE;
 
@@ -81,6 +85,8 @@ char *msShapeToWKT(shapeObj *shape)
 #endif
 }
 
+#endif /* SHAPELIB_DISABLED */
+
 void msInitShape(shapeObj *shape)
 {
   /* spatial component */
@@ -106,6 +112,8 @@ void msInitShape(shapeObj *shape)
 
   shape->scratch = MS_FALSE; /* not a temporary/scratch shape */
 }
+
+#ifdef SHAPELIB_DISABLED
 
 int msCopyShape(shapeObj *from, shapeObj *to)
 {
@@ -144,6 +152,8 @@ int msCopyShape(shapeObj *from, shapeObj *to)
   return(0);
 }
 
+#endif /* SHAPELIB_DISABLED */
+
 void msFreeShape(shapeObj *shape)
 {
   int c;
@@ -163,6 +173,8 @@ void msFreeShape(shapeObj *shape)
 
   msInitShape(shape); /* now reset */
 }
+
+#ifdef SHAPELIB_DISABLED
 
 int msGetShapeRAMSize(shapeObj* shape)
 {
@@ -2327,3 +2339,4 @@ int msIsDegenerateShape(shapeObj *shape)
   return( non_degenerate_parts == 0 );
 }
 
+#endif /* SHAPELIB_DISABLED */
