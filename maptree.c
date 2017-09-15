@@ -36,6 +36,12 @@
 #include <sys/param.h>
 #include <stdbool.h>
 
+#ifdef ANDROID
+#include <sys/endian.h>
+#endif
+
+
+static const bool bBigEndian = BYTE_ORDER == BIG_ENDIAN;
 
 /* -------------------------------------------------------------------- */
 /*      If the following is 0.5, nodes will be split in half.  If it    */
@@ -93,6 +99,7 @@ SHPTreeHandle msSHPDiskTreeOpen(const char * pszTree, int debug)
 
   char    pabyBuf[16];
   int     i;
+#ifdef SHAPELIB_DISABLED
   char    bBigEndian;
 
   /* -------------------------------------------------------------------- */
@@ -103,6 +110,7 @@ SHPTreeHandle msSHPDiskTreeOpen(const char * pszTree, int debug)
     bBigEndian = MS_FALSE;
   else
     bBigEndian = MS_TRUE;
+#endif /* SHAPELIB_DISABLED */
 
   /* -------------------------------------------------------------------- */
   /*  Initialize the info structure.              */
