@@ -30,6 +30,7 @@
 #define MAP_H
 
 #include "mapserver-config.h"
+#include "Util/Compiler.h"
 
 #include <stddef.h>
 #include <stdlib.h>
@@ -2473,12 +2474,19 @@ void msPopulateTextSymbolForLabelAndString(textSymbolObj *ts, labelObj *l, char 
 #define MS_SET_BIT(array,i) {array[i>>5] |= (1 <<(i & 0x3f));}
 #define MS_CLR_BIT(array,i) {array[i>>5] &= (~(1 <<(i & 0x3f)));}
 
+  gcc_pure
   MS_DLL_EXPORT size_t msGetBitArraySize(int numbits); /* in mapbits.c */
+
+  gcc_malloc
   MS_DLL_EXPORT ms_bitarray msAllocBitArray(int numbits);
+
+  gcc_pure
   MS_DLL_EXPORT int msGetBit(ms_const_bitarray array, int index);
   MS_DLL_EXPORT void msSetBit(ms_bitarray array, int index, int value);
   MS_DLL_EXPORT void msSetAllBits(ms_bitarray array, int index, int value);
   MS_DLL_EXPORT void msFlipBit(ms_bitarray array, int index);
+
+  gcc_pure
   MS_DLL_EXPORT int msGetNextBit(ms_const_bitarray array, int index, int size);
 
 #ifdef SHAPELIB_DISABLED
