@@ -52,10 +52,13 @@
   ( ((data >> 24) & 0x000000FF) | ((data >>  8) & 0x0000FF00) | \
     ((data <<  8) & 0x00FF0000) | ((data << 24) & 0xFF000000) )
 
+#ifdef ANDROID
+#include <sys/endian.h>
+#endif
 
 #define ByteCopy( a, b, c )     memcpy( b, a, c )
 
-static int      bBigEndian;
+static const bool bBigEndian = BYTE_ORDER == BIG_ENDIAN;
 
 /************************************************************************/
 /*                              SwapWord()                              */
@@ -213,6 +216,7 @@ SHPHandle msSHPOpen( const char * pszLayer, const char * pszAccess )
   else
     pszAccess = "rb";
 
+#ifdef SHAPELIB_DISABLED
   /* -------------------------------------------------------------------- */
   /*  Establish the byte order on this machine.         */
   /* -------------------------------------------------------------------- */
@@ -221,6 +225,7 @@ SHPHandle msSHPOpen( const char * pszLayer, const char * pszAccess )
     bBigEndian = MS_FALSE;
   else
     bBigEndian = MS_TRUE;
+#endif /* SHAPELIB_DISABLED */
 
   /* -------------------------------------------------------------------- */
   /*  Initialize the info structure.              */
@@ -477,6 +482,7 @@ SHPHandle msSHPCreate( const char * pszLayer, int nShapeType )
   }
 #endif
 
+#ifdef SHAPELIB_DISABLED
   /* -------------------------------------------------------------------- */
   /*      Establish the byte order on this system.                        */
   /* -------------------------------------------------------------------- */
@@ -485,6 +491,7 @@ SHPHandle msSHPCreate( const char * pszLayer, int nShapeType )
     bBigEndian = MS_FALSE;
   else
     bBigEndian = MS_TRUE;
+#endif /* SHAPELIB_DISABLED */
 
   /* -------------------------------------------------------------------- */
   /*  Compute the base (layer) name.  If there is any extension       */
