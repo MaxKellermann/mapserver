@@ -30,6 +30,9 @@
 #ifndef MAPTREE_H
 #define MAPTREE_H
 
+#include "mapprimitive.h"
+#include "mapshape.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif

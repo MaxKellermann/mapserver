@@ -32,7 +32,8 @@
 
 #include "mapserver.h"
 #include <stdlib.h> /* for atof() and atoi() */
-#include <math.h>
+#include <string.h>
+#include <ctype.h>
 
 
 

@@ -35,6 +35,7 @@
 #include "mapthread.h"
 
 
+#include <stdio.h>
 #include <ctype.h>
 #include <string.h>
 #include <errno.h>
