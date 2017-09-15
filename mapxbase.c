@@ -552,8 +552,7 @@ static const char *msDBFReadAttribute(DBFHandle psDBF, int hEntity, int iField )
 
     nRecordOffset = psDBF->nRecordLength * hEntity + psDBF->nHeaderLength;
 
-    safe_fseek( psDBF->fp, nRecordOffset, 0 );
-    if( zzip_fread( psDBF->pszCurrentRecord, psDBF->nRecordLength, 1, psDBF->fp ) != 1 )
+    if( zzip_pread( psDBF->fp, psDBF->pszCurrentRecord, psDBF->nRecordLength, nRecordOffset ) != (zzip_size_t)psDBF->nRecordLength )
     {
       msSetError(MS_DBFERR, "Cannot read record %d.", "msDBFReadAttribute()",hEntity );
       return( NULL );
