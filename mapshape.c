@@ -1307,12 +1307,7 @@ void msSHPReadShape( SHPHandle psSHP, int hEntity, shapeObj *shape )
   /* -------------------------------------------------------------------- */
   /*      Read the record.                                                */
   /* -------------------------------------------------------------------- */
-  if( -1 == zzip_seek( psSHP->fpSHP, msSHXReadOffset( psSHP, hEntity), 0 )) {
-    msSetError(MS_IOERR, "failed to seek offset", "msSHPReadShape()");
-    shape->type = MS_SHAPE_NULL;
-    return;
-  }
-  if( 1 != zzip_fread( psSHP->pabyRec, nEntitySize, 1, psSHP->fpSHP )) {
+  if ((zzip_size_t)nEntitySize != zzip_pread(psSHP->fpSHP, psSHP->pabyRec, nEntitySize, msSHXReadOffset(psSHP, hEntity))) {
     msSetError(MS_IOERR, "failed to fread record", "msSHPReadPoint()");
     shape->type = MS_SHAPE_NULL;
     return;
@@ -1684,11 +1679,7 @@ int msSHPReadBounds( SHPHandle psSHP, int hEntity, rectObj *padBounds)
     }
 
     if( psSHP->nShapeType != SHP_POINT && psSHP->nShapeType != SHP_POINTZ && psSHP->nShapeType != SHP_POINTM) {
-      if( -1 == zzip_seek( psSHP->fpSHP, msSHXReadOffset( psSHP, hEntity) + 12, 0 )) {
-        msSetError(MS_IOERR, "failed to seek offset", "msSHPReadBounds()");
-        return(MS_FAILURE);
-      }
-      if( 1 != zzip_fread( padBounds, sizeof(double)*4, 1, psSHP->fpSHP )) {
+      if (sizeof(double) * 4 != zzip_pread(psSHP->fpSHP, padBounds, sizeof(double) * 4, msSHXReadOffset(psSHP, hEntity) + 12)) {
         msSetError(MS_IOERR, "failed to fread record", "msSHPReadBounds()");
         return(MS_FAILURE);
       }
@@ -1710,11 +1701,7 @@ int msSHPReadBounds( SHPHandle psSHP, int hEntity, rectObj *padBounds)
       /*      minimum and maximum bound.                                      */
       /* -------------------------------------------------------------------- */
 
-      if( -1 == zzip_seek( psSHP->fpSHP, msSHXReadOffset( psSHP, hEntity) + 12, 0 )) {
-        msSetError(MS_IOERR, "failed to seek offset", "msSHPReadBounds()");
-        return(MS_FAILURE);
-      }
-      if( 1 != zzip_fread( padBounds, sizeof(double)*2, 1, psSHP->fpSHP )) {
+      if (sizeof(double) * 2 != zzip_pread(psSHP->fpSHP, padBounds, sizeof(double) * 2, msSHXReadOffset(psSHP, hEntity) + 12)) {
         msSetError(MS_IOERR, "failed to fread record", "msSHPReadBounds()");
         return(MS_FAILURE);
       }
