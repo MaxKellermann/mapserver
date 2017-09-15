@@ -39,7 +39,11 @@
 #include "mapproject.h"
 #endif /* SHAPELIB_DISABLED */
 
+#ifdef SHAPELIB_DISABLED
 #include "cpl_vsi.h"
+#endif /* SHAPELIB_DISABLED */
+
+struct zzip_dir;
 
 #ifdef __cplusplus
 extern "C" {
@@ -86,8 +90,8 @@ extern "C" {
   typedef unsigned char uchar;
 
   typedef struct {
-    VSILFILE  *fpSHP;
-    VSILFILE  *fpSHX;
+    struct zzip_file  *fpSHP;
+    struct zzip_file  *fpSHX;
 
     int   nShapeType;       /* SHPT_* */
     int   nFileSize;        /* SHP file */
@@ -122,7 +126,7 @@ extern "C" {
 #ifdef SWIG
     %immutable;
 #endif
-    VSILFILE  *fp;
+    struct zzip_file  *fp;
 
     int   nRecords;
 
@@ -202,13 +206,13 @@ extern "C" {
   } msTiledSHPLayerInfo;
 
   /* shapefileObj function prototypes  */
-  MS_DLL_EXPORT int msShapefileOpen(shapefileObj *shpfile, const char *mode, const char *filename, int log_failures);
+  MS_DLL_EXPORT int msShapefileOpen(shapefileObj *shpfile, const char *mode, struct zzip_dir *zdir, const char *filename, int log_failures);
   MS_DLL_EXPORT int msShapefileCreate(shapefileObj *shpfile, char *filename, int type);
   MS_DLL_EXPORT void msShapefileClose(shapefileObj *shpfile);
-  MS_DLL_EXPORT int msShapefileWhichShapes(shapefileObj *shpfile, rectObj rect, int debug);
+  MS_DLL_EXPORT int msShapefileWhichShapes(shapefileObj *shpfile, struct zzip_dir *zdir, rectObj rect, int debug);
 
   /* SHP/SHX function prototypes */
-  MS_DLL_EXPORT SHPHandle msSHPOpen( const char * pszShapeFile, const char * pszAccess );
+  MS_DLL_EXPORT SHPHandle msSHPOpen(struct zzip_dir *zdir, const char * pszShapeFile, const char * pszAccess );
   MS_DLL_EXPORT SHPHandle msSHPCreate( const char * pszShapeFile, int nShapeType );
   MS_DLL_EXPORT void msSHPClose( SHPHandle hSHP );
   MS_DLL_EXPORT void msSHPGetInfo( SHPHandle hSHP, int * pnEntities, int * pnShapeType );
@@ -227,7 +231,7 @@ extern "C" {
   /* tiledShapefileObj function prototypes are in mapserver.h */
 
   /* XBase function prototypes */
-  MS_DLL_EXPORT DBFHandle msDBFOpen( const char * pszDBFFile, const char * pszAccess );
+  MS_DLL_EXPORT DBFHandle msDBFOpen(struct zzip_dir *zdir, const char * pszDBFFile, const char * pszAccess );
   MS_DLL_EXPORT void msDBFClose( DBFHandle hDBF );
   MS_DLL_EXPORT DBFHandle msDBFCreate( const char * pszDBFFile );
 

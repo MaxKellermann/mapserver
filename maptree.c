@@ -31,6 +31,8 @@
 #include "mapserver.h"
 #include "maptree.h"
 
+#include <zzip/util.h>
+
 #include <stdio.h>
 #include <string.h>
 #include <sys/param.h>
@@ -97,7 +99,8 @@ static treeNodeObj *treeNodeCreate(rectObj rect)
 
 #endif /* SHAPELIB_DISABLED */
 
-SHPTreeHandle msSHPDiskTreeOpen(const char * pszTree, int debug)
+SHPTreeHandle msSHPDiskTreeOpen(struct zzip_dir *zdir, const char * pszTree,
+                                int debug)
 {
   char    *pszFullname, *pszBasename;
   SHPTreeHandle psTree;
@@ -142,10 +145,10 @@ SHPTreeHandle msSHPDiskTreeOpen(const char * pszTree, int debug)
   /* -------------------------------------------------------------------- */
   pszFullname = (char *) msSmallMalloc(strlen(pszBasename) + 5);
   sprintf( pszFullname, "%s%s", pszBasename, MS_INDEX_EXTENSION);
-  psTree->fp = fopen(pszFullname, "rb" );
+  psTree->fp = zzip_open_rb(zdir, pszFullname);
   if( psTree->fp == NULL ) {
       sprintf( pszFullname, "%s.QIX", pszBasename);
-      psTree->fp = fopen(pszFullname, "rb" );
+      psTree->fp = zzip_open_rb(zdir, pszFullname);
   }
 
   msFree(pszBasename); /* don't need these any more */
@@ -156,7 +159,7 @@ SHPTreeHandle msSHPDiskTreeOpen(const char * pszTree, int debug)
     return( NULL );
   }
 
-  if( fread( pabyBuf, 8, 1, psTree->fp ) != 1 ) {
+  if( zzip_fread( pabyBuf, 8, 1, psTree->fp ) != 1 ) {
     msFree(psTree);
     return( NULL );
   }
@@ -195,7 +198,7 @@ SHPTreeHandle msSHPDiskTreeOpen(const char * pszTree, int debug)
     memcpy( &psTree->version, pabyBuf+4, 1 );
     memcpy( &psTree->flags, pabyBuf+5, 3 );
 
-    if( fread( pabyBuf, 8, 1, psTree->fp ) != 1 )
+    if( zzip_fread( pabyBuf, 8, 1, psTree->fp ) != 1 )
     {
       msFree(psTree);
       return( NULL );
@@ -214,7 +217,7 @@ SHPTreeHandle msSHPDiskTreeOpen(const char * pszTree, int debug)
 
 void msSHPDiskTreeClose(SHPTreeHandle disktree)
 {
-  fclose( disktree->fp );
+  zzip_file_close( disktree->fp );
   free( disktree );
 }
 
@@ -496,30 +499,30 @@ static void searchDiskTreeNode(SHPTreeHandle disktree, rectObj aoi, ms_bitarray 
 
   int *ids=NULL;
 
-  if( fread( &offset, 4, 1, disktree->fp ) != 1 )
+  if( zzip_fread( &offset, 4, 1, disktree->fp ) != 1 )
     goto error;
   if ( disktree->needswap ) SwapWord ( 4, &offset );
 
-  if( fread( &rect, sizeof(rectObj), 1, disktree->fp ) != 1 )
+  if( zzip_fread( &rect, sizeof(rectObj), 1, disktree->fp ) != 1 )
     goto error;
   if ( disktree->needswap ) SwapWord ( 8, &rect.minx );
   if ( disktree->needswap ) SwapWord ( 8, &rect.miny );
   if ( disktree->needswap ) SwapWord ( 8, &rect.maxx );
   if ( disktree->needswap ) SwapWord ( 8, &rect.maxy );
 
-  if( fread( &numshapes, 4, 1, disktree->fp ) != 1 )
+  if( zzip_fread( &numshapes, 4, 1, disktree->fp ) != 1 )
     goto error;
   if ( disktree->needswap ) SwapWord ( 4, &numshapes );
 
   if(!msRectOverlap(&rect, &aoi)) { /* skip rest of this node and sub-nodes */
     offset += numshapes*sizeof(ms_int32) + sizeof(ms_int32);
-    fseek(disktree->fp, offset, SEEK_CUR);
+    zzip_seek(disktree->fp, offset, SEEK_CUR);
     return;
   }
   if(numshapes > 0) {
     ids = (int *)msSmallMalloc(numshapes*sizeof(ms_int32));
 
-    if( fread( ids, numshapes*sizeof(ms_int32), 1, disktree->fp ) != 1 )
+    if( zzip_fread( ids, numshapes*sizeof(ms_int32), 1, disktree->fp ) != 1 )
       goto error;
     if (disktree->needswap ) {
       for( i=0; i<numshapes; i++ ) {
@@ -533,7 +536,7 @@ static void searchDiskTreeNode(SHPTreeHandle disktree, rectObj aoi, ms_bitarray 
     free(ids);
   }
 
-  if( fread( &numsubnodes, 4, 1, disktree->fp ) != 1 )
+  if( zzip_fread( &numsubnodes, 4, 1, disktree->fp ) != 1 )
     goto error;
   if ( disktree->needswap ) SwapWord ( 4, &numsubnodes );
 
@@ -547,12 +550,12 @@ error:
   return;
 }
 
-ms_bitarray msSearchDiskTree(const char *filename, rectObj aoi, int debug, int numshapes)
+ms_bitarray msSearchDiskTree(struct zzip_dir *zdir, const char *filename, rectObj aoi, int debug, int numshapes)
 {
   SHPTreeHandle disktree;
   ms_bitarray status=NULL;
 
-  disktree = msSHPDiskTreeOpen (filename, debug);
+  disktree = msSHPDiskTreeOpen(zdir, filename, debug);
   if(!disktree) {
 
     /* only set this error IF debugging is turned on, gets annoying otherwise */

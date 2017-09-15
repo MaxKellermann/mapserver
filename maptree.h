@@ -33,6 +33,8 @@
 #include "mapprimitive.h"
 #include "mapshape.h"
 
+struct zzip_dir;
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -60,7 +62,7 @@ extern "C" {
 
 
   typedef struct {
-    FILE        *fp;
+    struct zzip_file        *fp;
     char        signature[3];
     char  LSB_order;
     char        needswap;
@@ -79,7 +81,7 @@ extern "C" {
 #define MS_NEW_MSB_ORDER 2
 
 
-  MS_DLL_EXPORT SHPTreeHandle msSHPDiskTreeOpen(const char * pszTree, int debug);
+  MS_DLL_EXPORT SHPTreeHandle msSHPDiskTreeOpen(struct zzip_dir *zdir, const char * pszTree, int debug);
   MS_DLL_EXPORT void msSHPDiskTreeClose(SHPTreeHandle disktree);
   MS_DLL_EXPORT treeNodeObj *readTreeNode( SHPTreeHandle disktree );
 
@@ -88,7 +90,7 @@ extern "C" {
   MS_DLL_EXPORT void msDestroyTree(treeObj *tree);
 
   MS_DLL_EXPORT ms_bitarray msSearchTree(const treeObj *tree, rectObj aoi);
-  MS_DLL_EXPORT ms_bitarray msSearchDiskTree(const char *filename, rectObj aoi, int debug, int numshapes);
+  MS_DLL_EXPORT ms_bitarray msSearchDiskTree(struct zzip_dir *zdir, const char *filename, rectObj aoi, int debug, int numshapes);
 
   MS_DLL_EXPORT treeObj *msReadTree(char *filename, int debug);
   MS_DLL_EXPORT int msWriteTree(treeObj *tree, char *filename, int LSB_order);

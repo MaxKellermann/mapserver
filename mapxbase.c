@@ -29,11 +29,19 @@
  ****************************************************************************/
 
 #include "mapserver.h"
+
+#include <zzip/util.h>
+
 #include <stdlib.h> /* for atof() and atoi() */
 #include <string.h>
 #include <ctype.h>
 
+#ifdef SHAPELIB_DISABLED
 #include "cpl_vsi.h"
+#endif /* SHAPELIB_DISABLED */
+
+/* try to use a large file version of fseek for files up to 4GB (#3514) */
+#define safe_fseek zzip_seek
 
 #ifdef SHAPELIB_DISABLED
 static inline void IGUR_sizet(size_t ignored) { (void)ignored; }  /* Ignore GCC Unused Result */
@@ -135,7 +143,7 @@ static void flushRecord( DBFHandle psDBF )
 /*                                                                      */
 /*      Open a .dbf file.                                               */
 /************************************************************************/
-DBFHandle msDBFOpen( const char * pszFilename, const char * pszAccess )
+DBFHandle msDBFOpen(struct zzip_dir *zdir,  const char * pszFilename, const char * pszAccess )
 
 {
   DBFHandle   psDBF;
@@ -170,12 +178,12 @@ DBFHandle msDBFOpen( const char * pszFilename, const char * pszAccess )
   /* -------------------------------------------------------------------- */
   psDBF = (DBFHandle) calloc( 1, sizeof(DBFInfo) );
   MS_CHECK_ALLOC(psDBF, sizeof(DBFInfo), NULL);
-  psDBF->fp = VSIFOpenL( pszDBFFilename, pszAccess );
+  psDBF->fp = zzip_open_rb(zdir, pszDBFFilename);
   if( psDBF->fp == NULL )
   {
     if( strcmp(pszDBFFilename+strlen(pszDBFFilename)-4,".dbf") == 0 ) {
       strcpy( pszDBFFilename+strlen(pszDBFFilename)-4, ".DBF");
-      psDBF->fp = VSIFOpenL( pszDBFFilename, pszAccess );
+      psDBF->fp = zzip_open_rb(zdir, pszDBFFilename);
     }
   }
   if( psDBF->fp == NULL ) {
@@ -201,7 +209,7 @@ DBFHandle msDBFOpen( const char * pszFilename, const char * pszAccess )
   /*  Read Table Header info                                              */
   /* -------------------------------------------------------------------- */
   pabyBuf = (uchar *) msSmallMalloc(500);
-  if( VSIFReadL( pabyBuf, 32, 1, psDBF->fp ) != 1 )
+  if( zzip_fread( pabyBuf, 32, 1, psDBF->fp ) != 1 )
   {
     msFree(psDBF);
     msFree(pabyBuf);
@@ -224,8 +232,8 @@ DBFHandle msDBFOpen( const char * pszFilename, const char * pszAccess )
   pabyBuf = (uchar *) SfRealloc(pabyBuf,nHeadLen);
   psDBF->pszHeader = (char *) pabyBuf;
 
-  VSIFSeekL( psDBF->fp, 32, 0 );
-  if( VSIFReadL( pabyBuf, nHeadLen - 32, 1, psDBF->fp ) != 1 )
+  zzip_seek( psDBF->fp, 32, 0 );
+  if( zzip_fread( pabyBuf, nHeadLen - 32, 1, psDBF->fp ) != 1 )
   {
     msFree(psDBF->pszCurrentRecord);
     msFree(psDBF);
@@ -304,7 +312,7 @@ void  msDBFClose(DBFHandle psDBF)
   /* -------------------------------------------------------------------- */
   /*      Close, and free resources.                                      */
   /* -------------------------------------------------------------------- */
-  VSIFCloseL( psDBF->fp );
+  zzip_file_close( psDBF->fp );
 
   if( psDBF->panFieldOffset != NULL ) {
     free( psDBF->panFieldOffset );
@@ -544,8 +552,8 @@ static const char *msDBFReadAttribute(DBFHandle psDBF, int hEntity, int iField )
 
     nRecordOffset = psDBF->nRecordLength * hEntity + psDBF->nHeaderLength;
 
-    VSIFSeekL( psDBF->fp, nRecordOffset, 0 );
-    if( VSIFReadL( psDBF->pszCurrentRecord, psDBF->nRecordLength, 1, psDBF->fp ) != 1 )
+    safe_fseek( psDBF->fp, nRecordOffset, 0 );
+    if( zzip_fread( psDBF->pszCurrentRecord, psDBF->nRecordLength, 1, psDBF->fp ) != 1 )
     {
       msSetError(MS_DBFERR, "Cannot read record %d.", "msDBFReadAttribute()",hEntity );
       return( NULL );

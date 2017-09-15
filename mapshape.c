@@ -36,6 +36,9 @@
 
 #include <limits.h>
 #include <assert.h>
+
+#include <zzip/util.h>
+
 #include <string.h>
 #include <stdio.h>
 #include <sys/param.h>
@@ -206,7 +209,7 @@ static void writeHeader( SHPHandle psSHP )
 /*      Open the .shp and .shx files based on the basename of the       */
 /*      files or either file name.                                      */
 /************************************************************************/
-SHPHandle msSHPOpen( const char * pszLayer, const char * pszAccess )
+SHPHandle msSHPOpen(struct zzip_dir *zdir, const char * pszLayer, const char * pszAccess )
 {
   char *pszFullname, *pszBasename;
   SHPHandle psSHP;
@@ -269,10 +272,10 @@ SHPHandle msSHPOpen( const char * pszLayer, const char * pszAccess )
   /* -------------------------------------------------------------------- */
   pszFullname = (char *) msSmallMalloc(strlen(pszBasename) + 5);
   sprintf( pszFullname, "%s.shp", pszBasename );
-  psSHP->fpSHP = VSIFOpenL(pszFullname, pszAccess );
+  psSHP->fpSHP = zzip_open_rb(zdir, pszFullname);
   if( psSHP->fpSHP == NULL ) {
     sprintf( pszFullname, "%s.SHP", pszBasename );
-    psSHP->fpSHP = VSIFOpenL(pszFullname, pszAccess );
+    psSHP->fpSHP = zzip_open_rb(zdir, pszFullname );
   }
   if( psSHP->fpSHP == NULL ) {
     msFree(pszBasename);
@@ -282,13 +285,13 @@ SHPHandle msSHPOpen( const char * pszLayer, const char * pszAccess )
   }
 
   sprintf( pszFullname, "%s.shx", pszBasename );
-  psSHP->fpSHX = VSIFOpenL(pszFullname, pszAccess );
+  psSHP->fpSHX = zzip_open_rb(zdir, pszFullname);
   if( psSHP->fpSHX == NULL ) {
     sprintf( pszFullname, "%s.SHX", pszBasename );
-    psSHP->fpSHX = VSIFOpenL(pszFullname, pszAccess );
+    psSHP->fpSHX = zzip_open_rb(zdir, pszFullname);
   }
   if( psSHP->fpSHX == NULL ) {
-    VSIFCloseL(psSHP->fpSHP);
+    zzip_file_close(psSHP->fpSHP);
     msFree(pszBasename);
     msFree(pszFullname);
     msFree(psSHP);
@@ -302,9 +305,9 @@ SHPHandle msSHPOpen( const char * pszLayer, const char * pszAccess )
   /*   Read the file size from the SHP file.            */
   /* -------------------------------------------------------------------- */
   pabyBuf = (uchar *) msSmallMalloc(100);
-  if(1 != VSIFReadL( pabyBuf, 100, 1, psSHP->fpSHP )) {
-    VSIFCloseL( psSHP->fpSHP );
-    VSIFCloseL( psSHP->fpSHX );
+  if(1 != zzip_fread( pabyBuf, 100, 1, psSHP->fpSHP )) {
+    zzip_file_close( psSHP->fpSHP );
+    zzip_file_close( psSHP->fpSHX );
     free( psSHP );
     free(pabyBuf);
     return( NULL );
@@ -318,10 +321,10 @@ SHPHandle msSHPOpen( const char * pszLayer, const char * pszAccess )
   /* -------------------------------------------------------------------- */
   /*  Read SHX file Header info                                           */
   /* -------------------------------------------------------------------- */
-  if(1 != VSIFReadL( pabyBuf, 100, 1, psSHP->fpSHX )) {
+  if(1 != zzip_fread( pabyBuf, 100, 1, psSHP->fpSHX )) {
     msSetError(MS_SHPERR, "Corrupted .shx file", "msSHPOpen()");
-    VSIFCloseL( psSHP->fpSHP );
-    VSIFCloseL( psSHP->fpSHX );
+    zzip_file_close( psSHP->fpSHP );
+    zzip_file_close( psSHP->fpSHX );
     free( psSHP );
     free(pabyBuf);
     return( NULL );
@@ -329,8 +332,8 @@ SHPHandle msSHPOpen( const char * pszLayer, const char * pszAccess )
 
   if( pabyBuf[0] != 0 || pabyBuf[1] != 0 || pabyBuf[2] != 0x27  || (pabyBuf[3] != 0x0a && pabyBuf[3] != 0x0d) ) {
     msSetError(MS_SHPERR, "Corrupted .shp file", "msSHPOpen()");
-    VSIFCloseL( psSHP->fpSHP );
-    VSIFCloseL( psSHP->fpSHX );
+    zzip_file_close( psSHP->fpSHP );
+    zzip_file_close( psSHP->fpSHX );
     free( psSHP );
     free(pabyBuf);
 
@@ -344,8 +347,8 @@ SHPHandle msSHPOpen( const char * pszLayer, const char * pszAccess )
   if( psSHP->nRecords < 0 || psSHP->nRecords > 256000000 ) {
     msSetError(MS_SHPERR, "Corrupted .shp file : nRecords = %d.", "msSHPOpen()",
                psSHP->nRecords);
-    VSIFCloseL( psSHP->fpSHP );
-    VSIFCloseL( psSHP->fpSHX );
+    zzip_file_close( psSHP->fpSHP );
+    zzip_file_close( psSHP->fpSHX );
     free( psSHP );
     free(pabyBuf);
     return( NULL );
@@ -408,8 +411,8 @@ SHPHandle msSHPOpen( const char * pszLayer, const char * pszAccess )
     free(psSHP->panRecOffset);
     free(psSHP->panRecSize);
     free(psSHP->panRecLoaded);
-    VSIFCloseL( psSHP->fpSHP );
-    VSIFCloseL( psSHP->fpSHX );
+    zzip_file_close( psSHP->fpSHP );
+    zzip_file_close( psSHP->fpSHX );
     free( psSHP );
     msSetError(MS_MEMERR, "Out of memory", "msSHPOpen()");
     return( NULL );
@@ -445,8 +448,10 @@ void msSHPClose(SHPHandle psSHP )
   free(psSHP->pabyRec);
   free(psSHP->panParts);
 
-  VSIFCloseL( psSHP->fpSHX );
-  VSIFCloseL( psSHP->fpSHP );
+  if (psSHP->fpSHX)
+    zzip_file_close( psSHP->fpSHX );
+  if (psSHP->fpSHP)
+    zzip_file_close( psSHP->fpSHP );
 
   free( psSHP );
 }
@@ -1156,13 +1161,13 @@ int msSHXLoadPage( SHPHandle psSHP, int shxBufferPage )
   if( shxBufferPage < 0  )
     return(MS_FAILURE);
 
-  if( 0 != VSIFSeekL( psSHP->fpSHX, 100 + shxBufferPage * SHX_BUFFER_PAGE * 8, 0 )) {
+  if( -1 == zzip_seek( psSHP->fpSHX, 100 + shxBufferPage * SHX_BUFFER_PAGE * 8, 0 )) {
     /*
      * msSetError(MS_IOERR, "failed to seek offset", "msSHXLoadPage()");
      * return(MS_FAILURE);
     */
   }
-  if( SHX_BUFFER_PAGE != VSIFReadL( buffer, 8, SHX_BUFFER_PAGE, psSHP->fpSHX )) {
+  if( SHX_BUFFER_PAGE != zzip_fread( buffer, 8, SHX_BUFFER_PAGE, psSHP->fpSHX )) {
     /*
      * msSetError(MS_IOERR, "failed to fread SHX record", "msSHXLoadPage()");
      * return(MS_FAILURE);
@@ -1209,7 +1214,7 @@ int msSHXLoadAll( SHPHandle psSHP )
   uchar *pabyBuf;
 
   pabyBuf = (uchar *) msSmallMalloc(8 * psSHP->nRecords );
-  if(psSHP->nRecords != VSIFReadL( pabyBuf, 8, psSHP->nRecords, psSHP->fpSHX )) {
+  if((zzip_size_t)psSHP->nRecords != zzip_fread( pabyBuf, 8, psSHP->nRecords, psSHP->fpSHX )) {
     msSetError(MS_IOERR, "failed to read shx records", "msSHXLoadAll()");
     free(pabyBuf);
     return MS_FAILURE;
@@ -1302,12 +1307,12 @@ void msSHPReadShape( SHPHandle psSHP, int hEntity, shapeObj *shape )
   /* -------------------------------------------------------------------- */
   /*      Read the record.                                                */
   /* -------------------------------------------------------------------- */
-  if( 0 != VSIFSeekL( psSHP->fpSHP, msSHXReadOffset( psSHP, hEntity), 0 )) {
+  if( -1 == zzip_seek( psSHP->fpSHP, msSHXReadOffset( psSHP, hEntity), 0 )) {
     msSetError(MS_IOERR, "failed to seek offset", "msSHPReadShape()");
     shape->type = MS_SHAPE_NULL;
     return;
   }
-  if( 1 != VSIFReadL( psSHP->pabyRec, nEntitySize, 1, psSHP->fpSHP )) {
+  if( 1 != zzip_fread( psSHP->pabyRec, nEntitySize, 1, psSHP->fpSHP )) {
     msSetError(MS_IOERR, "failed to fread record", "msSHPReadPoint()");
     shape->type = MS_SHAPE_NULL;
     return;
@@ -1679,11 +1684,11 @@ int msSHPReadBounds( SHPHandle psSHP, int hEntity, rectObj *padBounds)
     }
 
     if( psSHP->nShapeType != SHP_POINT && psSHP->nShapeType != SHP_POINTZ && psSHP->nShapeType != SHP_POINTM) {
-      if( 0 != VSIFSeekL( psSHP->fpSHP, msSHXReadOffset( psSHP, hEntity) + 12, 0 )) {
+      if( -1 == zzip_seek( psSHP->fpSHP, msSHXReadOffset( psSHP, hEntity) + 12, 0 )) {
         msSetError(MS_IOERR, "failed to seek offset", "msSHPReadBounds()");
         return(MS_FAILURE);
       }
-      if( 1 != VSIFReadL( padBounds, sizeof(double)*4, 1, psSHP->fpSHP )) {
+      if( 1 != zzip_fread( padBounds, sizeof(double)*4, 1, psSHP->fpSHP )) {
         msSetError(MS_IOERR, "failed to fread record", "msSHPReadBounds()");
         return(MS_FAILURE);
       }
@@ -1705,11 +1710,11 @@ int msSHPReadBounds( SHPHandle psSHP, int hEntity, rectObj *padBounds)
       /*      minimum and maximum bound.                                      */
       /* -------------------------------------------------------------------- */
 
-      if( 0 != VSIFSeekL( psSHP->fpSHP, msSHXReadOffset( psSHP, hEntity) + 12, 0 )) {
+      if( -1 == zzip_seek( psSHP->fpSHP, msSHXReadOffset( psSHP, hEntity) + 12, 0 )) {
         msSetError(MS_IOERR, "failed to seek offset", "msSHPReadBounds()");
         return(MS_FAILURE);
       }
-      if( 1 != VSIFReadL( padBounds, sizeof(double)*2, 1, psSHP->fpSHP )) {
+      if( 1 != zzip_fread( padBounds, sizeof(double)*2, 1, psSHP->fpSHP )) {
         msSetError(MS_IOERR, "failed to fread record", "msSHPReadBounds()");
         return(MS_FAILURE);
       }
@@ -1727,7 +1732,7 @@ int msSHPReadBounds( SHPHandle psSHP, int hEntity, rectObj *padBounds)
   return MS_SUCCESS;
 }
 
-int msShapefileOpen(shapefileObj *shpfile, const char *mode, const char *filename, int log_failures)
+int msShapefileOpen(shapefileObj *shpfile, const char *mode, struct zzip_dir *zdir, const char *filename, int log_failures)
 {
   int i;
   char *dbfFilename;
@@ -1746,9 +1751,9 @@ int msShapefileOpen(shapefileObj *shpfile, const char *mode, const char *filenam
 
   /* open the shapefile file (appending ok) and get basic info */
   if(!mode)
-    shpfile->hSHP = msSHPOpen( filename, "rb");
+    shpfile->hSHP = msSHPOpen(zdir, filename, "rb");
   else
-    shpfile->hSHP = msSHPOpen( filename, mode);
+    shpfile->hSHP = msSHPOpen(zdir, filename, mode);
 
   if(!shpfile->hSHP) {
     if( log_failures )
@@ -1777,7 +1782,7 @@ int msShapefileOpen(shapefileObj *shpfile, const char *mode, const char *filenam
 
   strlcat(dbfFilename, ".dbf", bufferSize);
 
-  shpfile->hDBF = msDBFOpen(dbfFilename, "rb");
+  shpfile->hDBF = msDBFOpen(zdir, dbfFilename, "rb");
 
   if(!shpfile->hDBF) {
     if( log_failures )
@@ -1839,7 +1844,7 @@ void msShapefileClose(shapefileObj *shpfile)
 }
 
 /* status array lives in the shpfile, can return MS_SUCCESS/MS_FAILURE/MS_DONE */
-int msShapefileWhichShapes(shapefileObj *shpfile, rectObj rect, int debug)
+int msShapefileWhichShapes(shapefileObj *shpfile, struct zzip_dir *zdir, rectObj rect, int debug)
 {
   int i;
   rectObj shaperect;
@@ -1879,7 +1884,7 @@ int msShapefileWhichShapes(shapefileObj *shpfile, rectObj rect, int debug)
 
     sprintf(filename, "%s%s", sourcename, MS_INDEX_EXTENSION);
 
-    shpfile->status = msSearchDiskTree(filename, rect, debug, shpfile->numshapes);
+    shpfile->status = msSearchDiskTree(zdir, filename, rect, debug, shpfile->numshapes);
     free(filename);
     free(sourcename);
 
