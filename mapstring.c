@@ -36,6 +36,7 @@
 
 #include "cpl_vsi.h"
 
+#include <stdio.h>
 #include <ctype.h>
 #include <string.h>
 #include <errno.h>
